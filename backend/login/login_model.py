@@ -5,8 +5,8 @@ import asyncio
 import aiohttp
 from dataclasses import dataclass, asdict
 from backend.environments import api_url
-from .local_storage import LocalStorage
-from .http import Http, HttpMethod, GenericErrorBody, ResultType
+from backend.local_storage import LocalStorage
+from backend.http import Http, HttpMethod, GenericErrorBody, ResultType
 
 @dataclass
 class AuthMethodResp:
