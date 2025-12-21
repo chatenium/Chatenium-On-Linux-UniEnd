@@ -1,0 +1,21 @@
+[project]
+name = "chtnol_uniend"
+version = "0.1.0"
+description = "A python library made for Linux to communicate with the Chatenium API. Used in the 3 variants of Chatenium On Linux"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "Chatenium", email = "personal@alms.hu"}]
+license = {text = "GPL-3.0-or-later"}
+dependencies = [
+    "requests>=2.31",
+    "keyring>=24.0",
+    "aiohttp>=3.9",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: POSIX :: Linux",
+]
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
