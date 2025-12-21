@@ -4,7 +4,7 @@ import requests
 import asyncio
 import aiohttp
 from dataclasses import dataclass, asdict
-from .environments import api_url
+from backend.environments import api_url
 from .local_storage import LocalStorage
 from .http import Http, HttpMethod, GenericErrorBody, ResultType
 
