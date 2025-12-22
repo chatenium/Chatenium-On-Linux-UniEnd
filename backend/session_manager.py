@@ -1,13 +1,22 @@
-from typing import Optional
+from typing import Optional, Tuple
 import keyring
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 from backend.local_storage import LocalStorage
 
-class SessionManager(object):
+
+@dataclass
+class User:
+    username: str
+    displayName: str
+    pfp: str
+    userid: str
+
+
+class SessionManager:
     _instance = None
 
-    currentSession: Optional[str, SessionManager.User] = None
+    currentSession: Optional[Tuple[str, User]] = None
 
     def __init__(self):
         raise RuntimeError('Call instance() instead')
@@ -15,25 +24,20 @@ class SessionManager(object):
     @classmethod
     def instance(cls):
         if cls._instance is None:
-            print('Creating new instance')
             cls._instance = cls.__new__(cls)
-            # Put any initialization here.
         return cls._instance
 
-    def addSession(self, token: str, userdata: SessionManager.User):
-        print(token, userdata)
+    def addSession(self, token: str, userdata: User):
         keyring.set_password("chatenium_uniend", userdata.userid, token)
-        LocalStorage.instance().write(f"userdata_{userdata.userid}", userdata)
+        LocalStorage.instance().write(
+            f"userdata_{userdata.userid}",
+            userdata
+        )
 
     def loadSessions(self):
         for file in LocalStorage.get_all():
-            print(file)
             if file.startswith("userdata_"):
-                self.currentSession = (file.split("_")[1], LocalStorage.instance().read(file))
-
-    @dataclass()
-    class User:
-        username: str
-        displayName: str
-        pfp: str
-        userid: str
+                self.currentSession = (
+                    file.split("_", 1)[1],
+                    LocalStorage.instance().read(file)
+                )
