@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar, Optional
 from enum import Enum
 from .environments import api_url
+from backend.session_manager import SessionManager
 import aiohttp
 import json
 
@@ -42,7 +43,12 @@ class Result(Generic[S, E]):
         return cls(type=ResultType.ERROR, error=value)
 
 async def Http(method: HttpMethod, path: str, data: Optional[T], successType: type(S) = GenericSuccessBody, errorType: type(E) = GenericErrorBody) -> Result[S, E]:
-    async with aiohttp.ClientSession() as session:
+    header = {}
+
+    if SessionManager.instance().currentSession is not None:
+        header = {"Authorization": SessionManager.instance().currentSession[0]}
+
+    async with aiohttp.ClientSession(headers=header) as session:
         todo = session.get(f"{api_url}/{path}")
 
         if method == HttpMethod.POST:
@@ -52,6 +58,10 @@ async def Http(method: HttpMethod, path: str, data: Optional[T], successType: ty
             body = await resp.json()
 
             if 200 <= resp.status < 300:
-                return Result.ok(successType(**body))
+                if isinstance(body, list):
+                    result = [successType(**item) for item in body]
+                    return Result.ok(result)
+                else:
+                    return Result.ok(successType(**body))
             else:
                 return Result.fail(errorType(**body))

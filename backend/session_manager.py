@@ -1,13 +1,20 @@
-from typing import Optional
+from typing import Optional, Tuple
 import keyring
 from dataclasses import dataclass, asdict
 
 from backend.local_storage import LocalStorage
 
+@dataclass()
+class User:
+    username: str
+    displayName: str
+    pfp: str
+    userid: str
+
 class SessionManager(object):
     _instance = None
 
-    currentSession: Optional[str, SessionManager.User] = None
+    currentSession: Optional[Tuple[str, User]] = None
 
     def __init__(self):
         raise RuntimeError('Call instance() instead')
@@ -29,11 +36,6 @@ class SessionManager(object):
         for file in LocalStorage.get_all():
             print(file)
             if file.startswith("userdata_"):
-                self.currentSession = (file.split("_")[1], LocalStorage.instance().read(file))
-
-    @dataclass()
-    class User:
-        username: str
-        displayName: str
-        pfp: str
-        userid: str
+                token = keyring.get_password("chatenium_uniend", file.split("_")[1])
+                self.currentSession = (token, User(**LocalStorage.instance().read(file)))
+                break
