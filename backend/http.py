@@ -43,12 +43,15 @@ class Result(Generic[S, E]):
         return cls(type=ResultType.ERROR, error=value)
 
 async def Http(method: HttpMethod, path: str, data: Optional[T], successType: type(S) = GenericSuccessBody, errorType: type(E) = GenericErrorBody) -> Result[S, E]:
-    header = {}
+    headers: dict[str, str] = {}
 
-    if SessionManager.instance().currentSession is not None:
-        header = {"Authorization": SessionManager.instance().currentSession[0]}
+    session = SessionManager.instance().currentSession
+    if session is not None:
+        token = session[0]
+        if token is not None:
+            headers["Authorization"] = str(token)
 
-    async with aiohttp.ClientSession(headers=header) as session:
+    async with aiohttp.ClientSession(headers=headers) as session:
         todo = session.get(f"{api_url}/{path}")
 
         if method == HttpMethod.POST:
