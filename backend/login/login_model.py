@@ -7,7 +7,7 @@ from dataclasses import dataclass, asdict
 from backend.environments import api_url
 from backend.local_storage import LocalStorage
 from backend.http import Http, HttpMethod, GenericErrorBody, ResultType, E, Result, S
-from backend.session_manager import SessionManager
+from backend.session_manager import SessionManager, User
 
 
 @dataclass
@@ -30,7 +30,7 @@ async def login(username: str) -> AuthMethodResp:
     else:
         raise ValueError("API Returned An Error")
 
-async def password_auth(username: str, password: str) -> Result[S, E]:
+async def password_auth(username: str, password: str):
     print("Authenticating with password")
     result =  await Http(
         HttpMethod.POST,
@@ -45,14 +45,14 @@ async def password_auth(username: str, password: str) -> Result[S, E]:
     )
 
     if result.type == ResultType.SUCCESS:
-        SessionManager.instance().addSession(result.success.token, SessionManager.User(
+        SessionManager.instance().addSession(result.success.token, User(
             username=result.success.username,
             displayName=result.success.displayName,
             pfp=result.success.pfp,
             userid=result.success.userid
         ))
-
-    return result
+    else:
+        raise ValueError("Error")
 
 async def otp_send_code(type: int, unameMailPhone: str):
     result = await Http(
@@ -84,12 +84,14 @@ async def otp_verify_code(type: int, unameMailPhone: str, code: int):
     )
 
     if result.type == ResultType.SUCCESS:
-        SessionManager.instance().addSession(result.success.token, SessionManager.User(
+        SessionManager.instance().addSession(result.success.token, User(
             username=result.success.username,
             displayName=result.success.displayName,
             pfp=result.success.pfp,
             userid=result.success.userid
         ))
+    else:
+        raise ValueError(f"API Returned An Error {result.error}")
 
     return result
 
