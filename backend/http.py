@@ -3,10 +3,11 @@ from typing import Generic, TypeVar, Optional
 from enum import Enum
 from .environments import api_url
 import aiohttp
+import json
 
-T = TypeVar("RequestBody")
-S = TypeVar("SuccessResponse")
-E = TypeVar("ErrorResponse")
+T = TypeVar("T")
+S = TypeVar("S")
+E = TypeVar("E")
 
 class ResultType(Enum):
     SUCCESS = "success"
@@ -23,6 +24,10 @@ class GenericErrorBody:
     error: str
 
 @dataclass
+class GenericSuccessBody:
+    response: str
+
+@dataclass
 class Result(Generic[S, E]):
     type: ResultType
     success: S = None
@@ -36,9 +41,14 @@ class Result(Generic[S, E]):
     def fail(cls, value: E) -> "Result[S, E]":
         return cls(type=ResultType.ERROR, error=value)
 
-async def Http(method: HttpMethod, path: str, data: Optional[T], successType: type(S), errorType: type(E) = GenericErrorBody) -> Result[S, E]:
+async def Http(method: HttpMethod, path: str, data: Optional[T], successType: type(S) = GenericSuccessBody, errorType: type(E) = GenericErrorBody) -> Result[S, E]:
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{api_url}/{path}") as resp:
+        todo = session.get(f"{api_url}/{path}")
+
+        if method == HttpMethod.POST:
+            todo = session.post(f"{api_url}/{path}", data=json.dumps(data))
+
+        async with todo as resp:
             body = await resp.json()
 
             if 200 <= resp.status < 300:

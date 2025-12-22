@@ -6,14 +6,15 @@ import aiohttp
 from dataclasses import dataclass, asdict
 from backend.environments import api_url
 from backend.local_storage import LocalStorage
-from backend.http import Http, HttpMethod, GenericErrorBody, ResultType
+from backend.http import Http, HttpMethod, GenericErrorBody, ResultType, E, Result, S
+from backend.session_manager import SessionManager
+
 
 @dataclass
 class AuthMethodResp:
     email: bool
     password: bool
     sms: bool
-
 
 async def login(username: str) -> AuthMethodResp:
     print("Getting auth methods")
@@ -28,3 +29,94 @@ async def login(username: str) -> AuthMethodResp:
         return result.success
     else:
         raise ValueError("API Returned An Error")
+
+async def password_auth(username: str, password: str) -> Result[S, E]:
+    print("Authenticating with password")
+    result =  await Http(
+        HttpMethod.POST,
+        "v2/user/loginPasswordAuth",
+        asdict(PasswordAuthReq(
+            unameMailPhone=username,
+            password=password,
+            os="Linux",
+            language="en"
+        )),
+        LoginResp,
+    )
+
+    if result.type == ResultType.SUCCESS:
+        SessionManager.instance().addSession(result.success.token, SessionManager.User(
+            username=result.success.username,
+            displayName=result.success.displayName,
+            pfp=result.success.pfp,
+            userid=result.success.userid
+        ))
+
+    return result
+
+async def otp_send_code(type: int, unameMailPhone: str):
+    result = await Http(
+        HttpMethod.POST,
+        "v2/user/otpSendCode",
+        asdict(SendOTPCode(
+            usernamePhoneMail=unameMailPhone,
+            type=type
+        ))
+    )
+
+    if result.type == ResultType.SUCCESS:
+        print("OTP Sent Successfully")
+    else:
+        raise ValueError(f"API Returned An Error {result.error}")
+
+async def otp_verify_code(type: int, unameMailPhone: str, code: int):
+    result = await Http(
+        HttpMethod.POST,
+        "v2/user/otpVerifyCode",
+        asdict(VerifyOTPCodeReq(
+            usernamePhoneMail=unameMailPhone,
+            type=type,
+            code=code,
+            os="Linux",
+            language="en"
+        )),
+        LoginResp,
+    )
+
+    if result.type == ResultType.SUCCESS:
+        SessionManager.instance().addSession(result.success.token, SessionManager.User(
+            username=result.success.username,
+            displayName=result.success.displayName,
+            pfp=result.success.pfp,
+            userid=result.success.userid
+        ))
+
+    return result
+
+@dataclass()
+class PasswordAuthReq:
+    unameMailPhone: str
+    password: str
+    os: str
+    language: str
+
+@dataclass()
+class LoginResp:
+    token: str
+    userid: str
+    username: str
+    displayName: str
+    pfp: str
+
+@dataclass()
+class SendOTPCode:
+    usernamePhoneMail: str
+    type: int
+
+@dataclass()
+class VerifyOTPCodeReq:
+    usernamePhoneMail: str
+    type: int
+    code: int
+    os: str
+    language: str
