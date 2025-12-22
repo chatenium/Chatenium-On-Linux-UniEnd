@@ -90,6 +90,8 @@ async def otp_verify_code(type: int, unameMailPhone: str, code: int):
             pfp=result.success.pfp,
             userid=result.success.userid
         ))
+    else:
+        raise ValueError(f"API Returned An Error {result.error}")
 
     return result
 
