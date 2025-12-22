@@ -7,7 +7,7 @@ from backend.local_storage import LocalStorage
 class SessionManager(object):
     _instance = None
 
-    currentSession: Optional[str, User] = None
+    currentSession: Optional[str, SessionManager.User] = None
 
     def __init__(self):
         raise RuntimeError('Call instance() instead')
@@ -20,7 +20,7 @@ class SessionManager(object):
             # Put any initialization here.
         return cls._instance
 
-    def addSession(self, token: str, userdata: User):
+    def addSession(self, token: str, userdata: SessionManager.User):
         print(token, userdata)
         keyring.set_password("chatenium_uniend", userdata.userid, token)
         LocalStorage.instance().write(f"userdata_{userdata.userid}", userdata)
