@@ -27,7 +27,7 @@ class SessionManager(object):
             # Put any initialization here.
         return cls._instance
 
-    def addSession(self, token: str, userdata: SessionManager.User):
+    def addSession(self, token: str, userdata: User):
         print(token, userdata)
         keyring.set_password("chatenium_uniend", userdata.userid, token)
         LocalStorage.instance().write(f"userdata_{userdata.userid}", userdata)
