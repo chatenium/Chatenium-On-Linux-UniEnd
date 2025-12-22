@@ -40,18 +40,22 @@ class Result(Generic[S, E]):
     @classmethod
     def fail(cls, value: E) -> "Result[S, E]":
         return cls(type=ResultType.ERROR, error=value)
+        
+async def Http(method: HttpMethod, path: str, data: Optional[T],
+               successType: type(S) = GenericSuccessBody,
+               errorType: type(E) = GenericErrorBody) -> Result[S, E]:
 
-async def Http(method: HttpMethod, path: str, data: Optional[T], successType: type(S) = GenericSuccessBody, errorType: type(E) = GenericErrorBody) -> Result[S, E]:
     async with aiohttp.ClientSession() as session:
-        todo = session.get(f"{api_url}/{path}")
+        if method == HttpMethod.GET:
+            async with session.get(f"{api_url}/{path}") as resp:
+                body = await resp.json()
+        elif method == HttpMethod.POST:
+            async with session.post(f"{api_url}/{path}", data=json.dumps(data)) as resp:
+                body = await resp.json()
+        else:
+            raise ValueError(f"Unsupported HTTP method: {method}")
 
-        if method == HttpMethod.POST:
-            todo = session.post(f"{api_url}/{path}", data=json.dumps(data))
-
-        async with todo as resp:
-            body = await resp.json()
-
-            if 200 <= resp.status < 300:
-                return Result.ok(successType(**body))
-            else:
-                return Result.fail(errorType(**body))
+        if 200 <= resp.status < 300:
+            return Result.ok(successType(**body))
+        else:
+            return Result.fail(errorType(**body))
