@@ -13,9 +13,9 @@ class Chat:
     pfp: str
     status: int
     pinnedMessages: str
-    notifications: Optional[int] = 0
     type: str
     muted: bool
+    notifications: Optional[int] = 0
 
 class ChatsHandler(object):
     _instance = None
