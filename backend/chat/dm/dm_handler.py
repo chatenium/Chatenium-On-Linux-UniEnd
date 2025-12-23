@@ -13,7 +13,7 @@ class Message:
     sent_at: TimeStamp
     isEdited: bool
     chatid: str
-    files: List[Attachment]
+    files: List[DmHandler.Attachment]
     seen: bool
     replyTo: str
     replyToId: str
