@@ -13,7 +13,7 @@ class Chat:
     pfp: str
     status: int
     pinnedMessages: str
-    notifications: Optional[int]
+    notifications: Optional[int] = 0
     type: str
     muted: bool
 
