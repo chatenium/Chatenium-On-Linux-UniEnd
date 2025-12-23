@@ -2,24 +2,8 @@ from typing import List
 
 from backend.http import Http, HttpMethod, ResultType
 from backend.session_manager import SessionManager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from backend.types import TimeStamp
-
-@dataclass()
-class Message:
-    msgid: str
-    author: str
-    message: str
-    sent_at: TimeStamp
-    isEdited: bool
-    chatid: str
-    files: List[Attachment]
-    seen: bool
-    replyTo: str
-    replyToId: str
-    forwardedFrom: str
-    forwardedFromName: str
-    metaData: None = None
 
 @dataclass()
 class Attachment:
@@ -31,6 +15,22 @@ class Attachment:
     height: int
     width: int
     hasThumbnail: bool
+
+@dataclass()
+class Message:
+    msgid: str
+    author: str
+    message: str
+    sent_at: TimeStamp
+    isEdited: bool
+    chatid: str
+    seen: bool
+    replyTo: str
+    replyToId: str
+    forwardedFrom: str
+    forwardedFromName: str
+    metaData: None = None
+    files: List[Attachment] = field(default_factory=list)
 
 class DmHandler(object):
     _instance = None
