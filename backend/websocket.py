@@ -91,11 +91,9 @@ class WebSocket(object):
         if result.type == ResultType.ERROR:
             raise ValueError(result.error)
 
-        print(result.success)
-
         print("Token generation ok, connecting to WebSocket.")
 
-        cls._websocket = websocket.WebSocketApp(f"{Environments.ws_url}/v2/ws?access_token={result.success.token}&userid={SessionManager.instance().currentSession[1].userid}",
+        cls._websocket = websocket.WebSocketApp(f"{Environments.instance().ws_url}/v2/ws?access_token={result.success.token}&userid={SessionManager.instance().currentSession[1].userid}",
                 on_message=cls.on_message,
                 on_open=cls.on_open,
                 on_error=cls.on_error,
