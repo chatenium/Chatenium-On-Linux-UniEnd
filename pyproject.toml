@@ -1,5 +1,5 @@
 [project]
-name = "chatenium-backend"
+name = "chatenium-uniend"
 version = "0.1.2"
 description = "Linux-only GPL-3 backend package for Chatenium"
 readme = "README.md"
