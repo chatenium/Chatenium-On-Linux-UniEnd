@@ -1,21 +1,18 @@
-import os
-
-class Environments(object):
+class Environments:
     _instance = None
 
     def __init__(self):
-        raise RuntimeError('Call instance() instead')
+        raise RuntimeError("Call instance() instead")
 
     @classmethod
     def instance(cls):
         if cls._instance is None:
-            print('Creating new Env instance')
+            print("Creating new Env instance")
             cls._instance = cls.__new__(cls)
-            # Put any initialization here.
+            # Initialize instance variables
+            cls._instance.api_url = "https://api.chatenium.hu"
+            cls._instance.ws_url = "wss://api.chatenium.hu"
         return cls._instance
-    
-    api_url = os.environ.get("API_URL", "https://api.chatenium.hu")
-    ws_url = os.environ.get("WS_URL", "wss://api.chatenium.hu")
 
     def overwrite_env(self, api: str, ws: str):
         self.api_url = api
