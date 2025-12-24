@@ -32,10 +32,11 @@ class SessionManager(object):
         keyring.set_password("chatenium_uniend", userdata.userid, token)
         LocalStorage.instance().write(f"userdata_{userdata.userid}", userdata)
 
-    def loadSessions(self):
+    def loadSessions(self) -> bool:
         for file in LocalStorage.get_all():
-            print(file)
             if file.startswith("userdata_"):
                 token = keyring.get_password("chatenium_uniend", file.split("_")[1])
                 self.currentSession = (token, User(**LocalStorage.instance().read(file)))
-                break
+                return True
+
+        return False
