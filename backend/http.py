@@ -57,10 +57,10 @@ async def Http(method: HttpMethod, path: str, data: Optional[T], successType: ty
         headers["X-WS-ID"] = WebSocket.connectionId
 
     async with aiohttp.ClientSession(headers=headers) as session:
-        todo = session.get(f"{Environments.api_url}/{path}")
+        todo = session.get(f"{Environments.instance().api_url}/{path}")
 
         if method == HttpMethod.POST:
-            todo = session.post(f"{Environments.api_url}/{path}", data=json.dumps(data))
+            todo = session.post(f"{Environments.instance().api_url}/{path}", data=json.dumps(data))
 
         async with todo as resp:
             body = await resp.json()
