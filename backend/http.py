@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Generic, TypeVar, Optional
 from enum import Enum
-from .environments import api_url
+from .environments import Environments
 from backend.session_manager import SessionManager
 import aiohttp
 import json
@@ -57,10 +57,10 @@ async def Http(method: HttpMethod, path: str, data: Optional[T], successType: ty
         headers["X-WS-ID"] = WebSocket.connectionId
 
     async with aiohttp.ClientSession(headers=headers) as session:
-        todo = session.get(f"{api_url}/{path}")
+        todo = session.get(f"{Environments.api_url}/{path}")
 
         if method == HttpMethod.POST:
-            todo = session.post(f"{api_url}/{path}", data=json.dumps(data))
+            todo = session.post(f"{Environments.api_url}/{path}", data=json.dumps(data))
 
         async with todo as resp:
             body = await resp.json()

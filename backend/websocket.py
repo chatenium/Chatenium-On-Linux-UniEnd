@@ -7,7 +7,7 @@ import rel
 
 from backend.http import Http, HttpMethod, ResultType, Result
 from backend.session_manager import SessionManager
-import backend.environments as environment
+from backend.environments import Environments
 import websocket
 
 class WebSocket(object):
@@ -95,7 +95,7 @@ class WebSocket(object):
 
         print("Token generation ok, connecting to WebSocket.")
 
-        cls._websocket = websocket.WebSocketApp(f"{environment.ws_url}/v2/ws?access_token={result.success.token}&userid={SessionManager.instance().currentSession[1].userid}",
+        cls._websocket = websocket.WebSocketApp(f"{Environments.ws_url}/v2/ws?access_token={result.success.token}&userid={SessionManager.instance().currentSession[1].userid}",
                 on_message=cls.on_message,
                 on_open=cls.on_open,
                 on_error=cls.on_error,
