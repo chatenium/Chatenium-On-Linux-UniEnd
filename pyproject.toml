@@ -1,6 +1,6 @@
 [project]
 name = "chatenium-backend"
-version = "0.1.1"
+version = "0.1.2"
 description = "Linux-only GPL-3 backend package for Chatenium"
 readme = "README.md"
 requires-python = ">=3.10"
