@@ -4,7 +4,6 @@ import requests
 import asyncio
 import aiohttp
 from dataclasses import dataclass, asdict
-from backend.environments import api_url
 from backend.local_storage import LocalStorage
 from backend.http import Http, HttpMethod, GenericErrorBody, ResultType, E, Result, S
 from backend.session_manager import SessionManager, User
