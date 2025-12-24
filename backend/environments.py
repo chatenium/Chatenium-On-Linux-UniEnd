@@ -1,4 +1,4 @@
-class Environments:
+class Environments(object):
     _instance = None
 
     def __init__(self):
