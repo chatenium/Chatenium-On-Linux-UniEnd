@@ -1,2 +1,2 @@
-api_url = "http://192.168.1.228:3000"
-ws_url = "ws://192.168.1.228:3000"
+api_url = "https://api.chatenium.hu"
+ws_url = "wss://api.chatenium.hu"
