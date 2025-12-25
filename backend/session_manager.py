@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 import keyring
+from keyring.backends import SecretService
 from dataclasses import dataclass, asdict
 
 from backend.local_storage import LocalStorage
@@ -25,6 +26,7 @@ class SessionManager(object):
             print('Creating new instance')
             cls._instance = cls.__new__(cls)
             # Put any initialization here.
+            keyring.set_keyring(SecretService.Keyring())
         return cls._instance
 
     def addSession(self, token: str, userdata: User):
