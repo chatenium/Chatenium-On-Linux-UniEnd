@@ -67,7 +67,7 @@ class ChatsHandler(object):
             cls._chats.append(result.success)
             cls._notify(cls._chats)
         else:
-            raise ValueError(result.error)
+            raise ValueError(result.error.error)
 
     @classmethod
     async def getChats(cls) -> List[Chat]:
