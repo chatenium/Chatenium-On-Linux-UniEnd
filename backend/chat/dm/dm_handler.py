@@ -176,7 +176,7 @@ class DmHandler(object):
             raise ValueError(result.error.error)
 
     @classmethod
-    async def send_message(cls, chatid: str, message: str, reply_to: str):
+    async def send_message(cls, chatid: str, message: str, reply_to: str, reply_to_message: str):
         print("Sending message")
         if SessionManager.instance().currentSession is None:
             raise ValueError("No session")
@@ -187,7 +187,7 @@ class DmHandler(object):
             asdict(FinishMessageReq(
                 message=message,
                 username=SessionManager.instance().currentSession[1].username,
-                replyToMessage="",
+                replyToMessage=reply_to_message,
                 chatid=chatid,
                 replyTo=reply_to,
                 uploadId="",
