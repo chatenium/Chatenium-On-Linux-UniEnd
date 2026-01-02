@@ -52,6 +52,19 @@ class JoinChatReq:
     connId: str
     chatid: str
 
+@dataclass()
+class EditMessageReq:
+    messageId: str
+    message: str
+    chatid: str
+    userid: str
+
+@dataclass()
+class DeleteMessageReq:
+    messageId: str
+    userid: str
+    chatid: str
+
 class DmHandler(object):
     _instance = None
     _listeners: List[Callable[[List[Message]], None]] = []
@@ -113,7 +126,57 @@ class DmHandler(object):
             raise ValueError(result.error)
 
     @classmethod
-    async def send_message(cls, chatid: str, message: str):
+    async def edit_message(cls, chatid: str, messageId: str, newMessage: str):
+        if SessionManager.instance().currentSession is None:
+            raise ValueError("No session")
+
+        result = await Http(
+            HttpMethod.PATCH,
+            "chat/dm/editMessage",
+            asdict(EditMessageReq(
+                messageId=messageId,
+                message=newMessage,
+                chatid=chatid,
+                userid=SessionManager.instance().currentSession[1].userid,
+            ))
+        )
+
+        if result.type == ResultType.SUCCESS:
+            messages = cls._messages.get(chatid, [])
+            for msg in messages:
+                if msg.msgid == messageId:
+                    msg.message = newMessage
+                    msg.isEdited = True
+            cls._messages[chatid] = messages
+            cls._notify(messages)
+        else:
+            raise ValueError(result.error.error)
+
+    @classmethod
+    async def delete_message(cls, chatid: str, messageId: str):
+        if SessionManager.instance().currentSession is None:
+            raise ValueError("No session")
+
+        result = await Http(
+            HttpMethod.PATCH,
+            "chat/dm/deleteMessage",
+            asdict(DeleteMessageReq(
+                userid=SessionManager.instance().currentSession[1].userid,
+                messageId=messageId,
+                chatid=chatid
+            ))
+        )
+
+        if result.type == ResultType.SUCCESS:
+            messages = cls._messages.get(chatid, [])
+            messages = [msg for msg in messages if msg.msgid != messageId]
+            cls._messages[chatid] = messages
+            cls._notify(messages)
+        else:
+            raise ValueError(result.error.error)
+
+    @classmethod
+    async def send_message(cls, chatid: str, message: str, reply_to: str):
         print("Sending message")
         if SessionManager.instance().currentSession is None:
             raise ValueError("No session")
@@ -126,7 +189,7 @@ class DmHandler(object):
                 username=SessionManager.instance().currentSession[1].username,
                 replyToMessage="",
                 chatid=chatid,
-                replyTo="",
+                replyTo=reply_to,
                 uploadId="",
                 pfp=SessionManager.instance().currentSession[1].pfp,
                 userid=SessionManager.instance().currentSession[1].userid,

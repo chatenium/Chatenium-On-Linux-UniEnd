@@ -19,6 +19,7 @@ class HttpMethod(Enum):
     POST = "POST"
     PUT = "PUT"
     DELETE = "DELETE"
+    PATCH = "PATCH"
 
 @dataclass
 class GenericErrorBody:
@@ -61,6 +62,9 @@ async def Http(method: HttpMethod, path: str, data: Optional[T], successType: ty
 
         if method == HttpMethod.POST:
             todo = session.post(f"{Environments.instance().api_url}/{path}", data=json.dumps(data))
+
+        if method == HttpMethod.PATCH:
+            todo = session.patch(f"{Environments.instance().api_url}/{path}", data=json.dumps(data))
 
         async with todo as resp:
             body = await resp.json()
