@@ -3,8 +3,6 @@ import threading
 from dataclasses import dataclass, asdict, is_dataclass
 from typing import Optional, Callable, Dict, Type, List
 
-import rel
-
 from backend.http import Http, HttpMethod, ResultType, Result
 from backend.session_manager import SessionManager
 from backend.environments import Environments
