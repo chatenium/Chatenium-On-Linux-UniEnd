@@ -62,7 +62,7 @@ jobs:
     - name: Update APT repo
       run: |
         mkdir -p pages/apt
-        cp builded.deb pages/apt/chatenium-uniend_$tag_all.deb
+        cp builded.deb pages/apt/chatenium-uniend-$tag-all.deb
         cd pages/apt
         dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
         cd ../
