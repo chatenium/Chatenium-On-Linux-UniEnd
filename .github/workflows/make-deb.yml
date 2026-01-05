@@ -1,0 +1,46 @@
+name: Build and Upload Debian Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          debhelper \
+          python3-all \
+          python3-setuptools \
+          python3-wheel \
+          python3-pip \
+          python3-venv \
+          dh-python \
+          build-essential
+
+    - name: Build .deb package
+      run: |
+        dpkg-buildpackage -us -uc -b
+      env:
+        DEB_BUILD_OPTIONS: nocheck
+
+    - name: Upload .deb to Release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: ../python3-chatenium-uniend_*_all.deb
+        overwrite: true
+        tag: ${{ github.ref }}
+        asset_name: uniend-$tag-all.deb
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
