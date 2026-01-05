@@ -4,7 +4,7 @@ version = "0.3.1"
 description = "Linux-only GPL-3 backend package for Chatenium"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "GPL-3.0-or-later"
+license = { text = "GPL-3.0-or-later" }
 dependencies = [
     "requests>=2.31",
     "keyring>=24.0",
@@ -19,3 +19,7 @@ classifiers = [
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["debian"]

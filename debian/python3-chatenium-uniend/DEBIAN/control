@@ -1,0 +1,11 @@
+Package: python3-chatenium-uniend
+Version: 0.3.1-1
+Architecture: all
+Maintainer: Chatenium <personal@alms.hu>
+Installed-Size: 53
+Depends: pybuild-plugin-pyproject, python3-aiohttp, python3-keyring, python3-requests, python3-websocket, python3:any
+Section: python
+Priority: optional
+Homepage: https://chtn.hu
+Description: Chatenium UniEnd backend library
+ A Python library to communicate with the Chatenium API.

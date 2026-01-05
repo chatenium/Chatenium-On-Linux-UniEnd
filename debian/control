@@ -16,6 +16,7 @@ Vcs-Git: ps://github.com/chatenium/Chatenium-On-Linux-UniEnd.git
 Package: python3-chatenium-uniend
 Architecture: all
 Depends:
+ pybuild-plugin-pyproject,
  ${python3:Depends},
  ${misc:Depends},
  python3-requests,
