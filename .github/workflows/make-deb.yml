@@ -1,4 +1,4 @@
-name: Build, Sign and Upload Debian Package
+name: Build and Upload Debian Package
 
 on:
   release:
@@ -8,31 +8,15 @@ jobs:
   build-deb:
     runs-on: ubuntu-latest
 
-    env:
-      REPO: chatenium/chatenium.github.io
-      DIST: stable
-      COMPONENT: main
-      ARCH: all
-      KEY_ID: 161B0A9907146606   # Your GPG key ID
-
     steps:
-    # -------------------------------
-    # Checkout source repo
-    # -------------------------------
-    - name: Checkout source repository
+    - name: Checkout repository
       uses: actions/checkout@v3
 
-    # -------------------------------
-    # Setup Python
-    # -------------------------------
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: 3.11
 
-    # -------------------------------
-    # Install build dependencies
-    # -------------------------------
     - name: Install build dependencies
       run: |
         sudo apt-get update
@@ -45,14 +29,8 @@ jobs:
           python3-venv \
           dh-python \
           pybuild-plugin-pyproject \
-          build-essential \
-          gnupg \
-          dpkg-dev \
-          apt-utils
+          build-essential
 
-    # -------------------------------
-    # Build .deb package
-    # -------------------------------
     - name: Build .deb package
       run: |
         dpkg-buildpackage -us -uc -b
@@ -62,89 +40,14 @@ jobs:
     - name: List built files (debug)
       run: ls -l ../
 
-    # -------------------------------
-    # Detect built package
-    # -------------------------------
-    - name: Set package filename
-      run: |
-        PKG_FILE=$(ls ../python3-chatenium-uniend_*_all.deb)
-        echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
-        echo "Built package: $PKG_FILE"
+    - name: Move .deb into workspace
+      run: mv ../python3-chatenium-uniend_*_all.deb ./builded.deb
 
-    # -------------------------------
-    # Upload .deb to GitHub Release
-    # -------------------------------
     - name: Upload .deb to Release
       uses: svenstaro/upload-release-action@v2
       with:
-        file: ${{ env.PKG_FILE }}
+        file: builded.deb
         overwrite: true
-        tag: ${{ github.ref_name }}
-        asset_name: chatenium-uniend-${{ github.ref_name }}_all.deb
+        tag: ${{ github.ref }}
+        asset_name: uniend-$tag-all.deb
         repo_token: ${{ secrets.REPO_TOKEN }}
-
-    # -------------------------------
-    # Clone GitHub Pages repo for APT
-    # -------------------------------
-    - name: Clone APT repo
-      uses: actions/checkout@v3
-      with:
-        repository: ${{ env.REPO }}
-        path: pages
-        token: ${{ secrets.REPO_TOKEN }}
-
-    # -------------------------------
-    # Import GPG private key
-    # -------------------------------
-    - name: Import GPG private key
-      run: |
-        echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-        gpg --list-keys
-
-    # -------------------------------
-    # Prepare standard Debian repo layout
-    # -------------------------------
-    - name: Prepare repo layout
-      run: |
-        mkdir -p pages/apt/pool/${{ env.COMPONENT }}
-        cp "${{ env.PKG_FILE }}" pages/apt/pool/${{ env.COMPONENT }}/
-        cd pages/apt
-
-        # Generate Packages.gz for binary-all
-        mkdir -p dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}
-        dpkg-scanpackages pool/${{ env.COMPONENT }} /dev/null \
-          > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages
-        gzip -c dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages \
-          > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages.gz
-
-        # Generate Release file (YAML-safe, no indentation!)
-        cat > dists/${{ env.DIST }}/Release <<'EOF'
-Origin: Chatenium
-Label: Chatenium
-Suite: stable
-Codename: stable
-Date: $(date -R)
-Architectures: all
-Components: main
-Description: Chatenium APT repository
-EOF
-
-        # Sign Release in ASCII-armored format (APT-compatible)
-        gpg --batch --yes --armor --detach-sign -u ${{ env.KEY_ID }} \
-          -o dists/${{ env.DIST }}/Release.gpg dists/${{ env.DIST }}/Release
-
-        # Export public key as binary for clients
-        gpg --export ${{ env.KEY_ID }} > chatenium-archive-keyring.gpg
-
-    # -------------------------------
-    # Commit and push APT repo
-    # -------------------------------
-    - name: Commit and push APT repo
-      run: |
-        cd pages
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git checkout -B main
-        git add .
-        git commit -m "Update APT repo for release ${{ github.ref_name }}" || echo "No changes to commit"
-        git push origin main
