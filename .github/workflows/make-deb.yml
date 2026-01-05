@@ -61,9 +61,9 @@ jobs:
 
     - name: Update APT repo
       run: |
-        mkdir -p pages/apt
-        cp builded.deb pages/apt/chatenium-uniend_$tag_all.deb
-        cd pages/apt
+        mkdir -p pages/apt/stable
+        cp builded.deb pages/apt/stable/chatenium-uniend_$tag_all.deb
+        cd pages/apt/stable
         dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
         cd ../
         git config user.name "github-actions[bot]"
