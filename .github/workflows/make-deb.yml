@@ -13,6 +13,7 @@ jobs:
       DIST: stable
       COMPONENT: main
       ARCH: all
+      KEY_ID: 161B0A9907146606   # Your GPG key ID
 
     steps:
     # -------------------------------
@@ -93,7 +94,7 @@ jobs:
         token: ${{ secrets.REPO_TOKEN }}
 
     # -------------------------------
-    # Import GPG key for signing
+    # Import GPG private key
     # -------------------------------
     - name: Import GPG private key
       run: |
@@ -109,16 +110,30 @@ jobs:
         cp "${{ env.PKG_FILE }}" pages/apt/pool/${{ env.COMPONENT }}/
         cd pages/apt
 
-        # Generate Packages.gz
+        # Generate Packages.gz for binary-all
         mkdir -p dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}
-        dpkg-scanpackages pool/${{ env.COMPONENT }} /dev/null > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages
-        gzip -c dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages.gz
+        dpkg-scanpackages pool/${{ env.COMPONENT }} /dev/null \
+          > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages
+        gzip -c dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages \
+          > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages.gz
 
-        # Generate Release file
-        apt-ftparchive release dists/${{ env.DIST }} > dists/${{ env.DIST }}/Release
+        # Generate Release file with Codename and Architectures
+        cat > dists/${{ env.DIST }}/Release <<EOF
+        Origin: Chatenium
+        Label: Chatenium
+        Suite: stable
+        Codename: stable
+        Date: $(date -R)
+        Architectures: all
+        Components: main
+        Description: Chatenium APT repository
+        EOF
 
-        # Sign Release
-        gpg --batch --yes -abs -o dists/${{ env.DIST }}/Release.gpg dists/${{ env.DIST }}/Release
+        # Sign Release with binary signature (not ASCII-armored)
+        gpg --batch --yes -o dists/${{ env.DIST }}/Release.gpg --detach-sign dists/${{ env.DIST }}/Release
+
+        # Export public key as binary .gpg for clients
+        gpg --export ${{ env.KEY_ID }} > chatenium-archive-keyring.gpg
 
     # -------------------------------
     # Commit and push APT repo
