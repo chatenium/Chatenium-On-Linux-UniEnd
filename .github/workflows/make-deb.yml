@@ -1,4 +1,4 @@
-name: Build and Upload Debian Package
+name: Build, Sign and Upload Debian Package
 
 on:
   release:
@@ -8,8 +8,14 @@ jobs:
   build-deb:
     runs-on: ubuntu-latest
 
+    env:
+      REPO: chatenium/chatenium.github.io
+      DIST: stable
+      COMPONENT: main
+      ARCH: all
+
     steps:
-    - name: Checkout repository
+    - name: Checkout source repository
       uses: actions/checkout@v3
 
     - name: Set up Python
@@ -29,7 +35,10 @@ jobs:
           python3-venv \
           dh-python \
           pybuild-plugin-pyproject \
-          build-essential
+          build-essential \
+          gnupg \
+          dpkg-dev \
+          apt-utils
 
     - name: Build .deb package
       run: |
@@ -43,29 +52,50 @@ jobs:
     - name: Move .deb into workspace
       run: mv ../python3-chatenium-uniend_*_all.deb ./builded.deb
 
-    - name: Upload .deb to Release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        file: builded.deb
-        overwrite: true
-        tag: ${{ github.ref }}
-        asset_name: uniend-$tag-all.deb
-        repo_token: ${{ secrets.REPO_TOKEN }}
-
-    - name: Clone APT Repo
+    # -------------------------------
+    # Clone GitHub Pages repo
+    # -------------------------------
+    - name: Clone APT repo
       uses: actions/checkout@v3
       with:
-        repository: chatenium/chatenium.github.io
+        repository: ${{ env.REPO }}
         path: pages
         token: ${{ secrets.REPO_TOKEN }}
 
-    - name: Update APT repo
+    # -------------------------------
+    # Import GPG key for signing
+    # -------------------------------
+    - name: Import GPG private key
       run: |
-        mkdir -p pages/apt
-        cp builded.deb pages/apt/chatenium-uniend-$tag-all.deb
+        echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+        gpg --list-keys
+
+    # -------------------------------
+    # Prepare standard Debian repo layout
+    # -------------------------------
+    - name: Prepare repo layout
+      run: |
+        mkdir -p pages/apt/pool/${{ env.COMPONENT }}
+        # Move package into pool
+        cp builded.deb pages/apt/pool/${{ env.COMPONENT }}/
         cd pages/apt
-        dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
-        cd ../
+
+        # Generate Packages.gz
+        mkdir -p dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}
+        dpkg-scanpackages pool/${{ env.COMPONENT }} /dev/null > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages
+        gzip -c dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages.gz
+
+        # Generate Release file
+        apt-ftparchive release dists/${{ env.DIST }} > dists/${{ env.DIST }}/Release
+
+        # Sign Release
+        gpg --batch --yes -abs -o dists/${{ env.DIST }}/Release.gpg dists/${{ env.DIST }}/Release
+
+    # -------------------------------
+    # Commit and push updates
+    # -------------------------------
+    - name: Commit and push APT repo
+      run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add .
