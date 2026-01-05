@@ -117,22 +117,23 @@ jobs:
         gzip -c dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages \
           > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages.gz
 
-        # Generate Release file with Codename and Architectures
-        cat > dists/${{ env.DIST }}/Release <<EOF
-        Origin: Chatenium
-        Label: Chatenium
-        Suite: stable
-        Codename: stable
-        Date: $(date -R)
-        Architectures: all
-        Components: main
-        Description: Chatenium APT repository
-        EOF
+        # Generate Release file (YAML-safe, no indentation!)
+        cat > dists/${{ env.DIST }}/Release <<'EOF'
+Origin: Chatenium
+Label: Chatenium
+Suite: stable
+Codename: stable
+Date: $(date -R)
+Architectures: all
+Components: main
+Description: Chatenium APT repository
+EOF
 
-        # Sign Release with binary signature (not ASCII-armored)
-        gpg --batch --yes -o dists/${{ env.DIST }}/Release.gpg --detach-sign dists/${{ env.DIST }}/Release
+        # Sign Release in ASCII-armored format (APT-compatible)
+        gpg --batch --yes --armor --detach-sign -u ${{ env.KEY_ID }} \
+          -o dists/${{ env.DIST }}/Release.gpg dists/${{ env.DIST }}/Release
 
-        # Export public key as binary .gpg for clients
+        # Export public key as binary for clients
         gpg --export ${{ env.KEY_ID }} > chatenium-archive-keyring.gpg
 
     # -------------------------------
