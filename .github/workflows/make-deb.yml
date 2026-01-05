@@ -41,12 +41,12 @@ jobs:
       run: ls -l ../
 
     - name: Move .deb into workspace
-      run: mv ../python3-chatenium-uniend_*_all.deb ./
+      run: mv ../python3-chatenium-uniend_*_all.deb ./builded.deb
 
     - name: Upload .deb to Release
       uses: svenstaro/upload-release-action@v2
       with:
-        file: python3-chatenium-uniend_*_all.deb
+        file: builded.deb
         overwrite: true
         tag: ${{ github.ref }}
         asset_name: uniend-$tag-all.deb
