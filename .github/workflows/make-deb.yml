@@ -76,18 +76,17 @@ jobs:
     - name: Prepare repo layout
       run: |
         mkdir -p pages/apt/pool/${{ env.COMPONENT }}
-        # Move package into pool
-        cp builded.deb pages/apt/pool/${{ env.COMPONENT }}/
+        cp workspace/python3-chatenium-uniend_*_all.deb pages/apt/pool/${{ env.COMPONENT }}/
         cd pages/apt
-
+    
         # Generate Packages.gz
         mkdir -p dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}
         dpkg-scanpackages pool/${{ env.COMPONENT }} /dev/null > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages
         gzip -c dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages.gz
-
+    
         # Generate Release file
         apt-ftparchive release dists/${{ env.DIST }} > dists/${{ env.DIST }}/Release
-
+    
         # Sign Release
         gpg --batch --yes -abs -o dists/${{ env.DIST }}/Release.gpg dists/${{ env.DIST }}/Release
 
