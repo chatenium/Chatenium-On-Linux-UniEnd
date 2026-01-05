@@ -15,14 +15,23 @@ jobs:
       ARCH: all
 
     steps:
+    # -------------------------------
+    # Checkout source repo
+    # -------------------------------
     - name: Checkout source repository
       uses: actions/checkout@v3
 
+    # -------------------------------
+    # Setup Python
+    # -------------------------------
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: 3.11
 
+    # -------------------------------
+    # Install build dependencies
+    # -------------------------------
     - name: Install build dependencies
       run: |
         sudo apt-get update
@@ -40,6 +49,9 @@ jobs:
           dpkg-dev \
           apt-utils
 
+    # -------------------------------
+    # Build .deb package
+    # -------------------------------
     - name: Build .deb package
       run: |
         dpkg-buildpackage -us -uc -b
@@ -49,11 +61,29 @@ jobs:
     - name: List built files (debug)
       run: ls -l ../
 
-    - name: Move .deb into workspace
-      run: mv ../python3-chatenium-uniend_*_all.deb ./builded.deb
+    # -------------------------------
+    # Detect built package
+    # -------------------------------
+    - name: Set package filename
+      run: |
+        PKG_FILE=$(ls ../python3-chatenium-uniend_*_all.deb)
+        echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
+        echo "Built package: $PKG_FILE"
 
     # -------------------------------
-    # Clone GitHub Pages repo
+    # Upload .deb to GitHub Release
+    # -------------------------------
+    - name: Upload .deb to Release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: ${{ env.PKG_FILE }}
+        overwrite: true
+        tag: ${{ github.ref_name }}
+        asset_name: chatenium-uniend-${{ github.ref_name }}_all.deb
+        repo_token: ${{ secrets.REPO_TOKEN }}
+
+    # -------------------------------
+    # Clone GitHub Pages repo for APT
     # -------------------------------
     - name: Clone APT repo
       uses: actions/checkout@v3
@@ -76,22 +106,22 @@ jobs:
     - name: Prepare repo layout
       run: |
         mkdir -p pages/apt/pool/${{ env.COMPONENT }}
-        cp workspace/python3-chatenium-uniend_*_all.deb pages/apt/pool/${{ env.COMPONENT }}/
+        cp "${{ env.PKG_FILE }}" pages/apt/pool/${{ env.COMPONENT }}/
         cd pages/apt
-    
+
         # Generate Packages.gz
         mkdir -p dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}
         dpkg-scanpackages pool/${{ env.COMPONENT }} /dev/null > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages
         gzip -c dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages > dists/${{ env.DIST }}/${{ env.COMPONENT }}/binary-${{ env.ARCH }}/Packages.gz
-    
+
         # Generate Release file
         apt-ftparchive release dists/${{ env.DIST }} > dists/${{ env.DIST }}/Release
-    
+
         # Sign Release
         gpg --batch --yes -abs -o dists/${{ env.DIST }}/Release.gpg dists/${{ env.DIST }}/Release
 
     # -------------------------------
-    # Commit and push updates
+    # Commit and push APT repo
     # -------------------------------
     - name: Commit and push APT repo
       run: |
