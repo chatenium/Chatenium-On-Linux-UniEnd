@@ -50,4 +50,4 @@ jobs:
         overwrite: true
         tag: ${{ github.ref }}
         asset_name: uniend-$tag-all.deb
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.REPO_TOKEN }}
