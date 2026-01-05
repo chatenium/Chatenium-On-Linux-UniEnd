@@ -51,3 +51,23 @@ jobs:
         tag: ${{ github.ref }}
         asset_name: uniend-$tag-all.deb
         repo_token: ${{ secrets.REPO_TOKEN }}
+
+    - name: Clone APT Repo
+      uses: actions/checkout@v3
+      with:
+        repository: chatenium/chatenium.github.io
+        path: pages
+        token: ${{ secrets.REPO_TOKEN }}
+
+    - name: Update APT repo
+      run: |
+        mkdir -p pages/apt
+        cp builded.deb pages/apt/
+        cd pages/apt
+        dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+        cd ../
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "Update APT repo for release ${{ github.ref_name }}" || echo "No changes to commit"
+        git push origin main
