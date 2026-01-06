@@ -12,6 +12,7 @@ BuildArch:      noarch
 BuildRequires:	python3-setuptools
 BuildRequires:  python3-wheel
 BuildRequires:	expat-devel
+BuildRequires:  python3-build
 
 Requires:	python3-requests
 Requires:	python3-keyring
