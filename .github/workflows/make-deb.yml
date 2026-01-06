@@ -89,8 +89,8 @@ jobs:
           cd repo
           mkdir -p pool
           cp ../artifact/builded.deb pool/python3-chatenium-uniend_${RELEASE_TAG}_all.deb
-          reprepro -b . includedeb bookworm pool/python3-chatenium-uniend_${RELEASE_TAG}_all.deb
-          reprepro -b . includedeb trixie pool/python3-chatenium-uniend_${RELEASE_TAG}_all.deb
+          reprepro -b ./apt includedeb bookworm pool/python3-chatenium-uniend_${RELEASE_TAG}_all.deb
+          reprepro -b ./apt includedeb trixie pool/python3-chatenium-uniend_${RELEASE_TAG}_all.deb
 
       - name: Commit & push changes
         run: |
