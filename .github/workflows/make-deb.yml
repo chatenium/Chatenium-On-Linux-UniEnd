@@ -96,4 +96,4 @@ jobs:
           cd repo
           git add .
           git commit -m "Add new release ${{ github.ref }}"
-          git push
+          git push https://x-access-token:${{ secrets.REPO_TOKEN }}@github.com/chatenium/chatenium.github.io.git main
