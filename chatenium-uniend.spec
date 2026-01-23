@@ -1,5 +1,5 @@
 Name:           python3-chatenium-uniend
-Version:        0.3.1
+Version:        0.3.2
 Release:        1%{?dist}
 Summary:        Chatenium UniEnd
 
