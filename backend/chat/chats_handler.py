@@ -4,6 +4,11 @@ from backend.http import Http, HttpMethod, ResultType
 from backend.session_manager import SessionManager
 from dataclasses import dataclass, asdict
 
+@dataclass()
+class LatestMessage:
+    msgid: str
+    message: str
+    isAuthor: bool
 
 @dataclass()
 class Chat:
@@ -16,6 +21,7 @@ class Chat:
     pinnedMessages: str
     type: str
     muted: bool
+    latestMessage: LatestMessage
     notifications: Optional[int] = 0
 
 @dataclass()
