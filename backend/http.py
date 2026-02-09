@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, is_dataclass, fields
 from typing import Generic, TypeVar, Optional
 from enum import Enum
 from .environments import Environments
@@ -10,9 +10,11 @@ T = TypeVar("T")
 S = TypeVar("S")
 E = TypeVar("E")
 
+
 class ResultType(Enum):
     SUCCESS = "success"
     ERROR = "error"
+
 
 class HttpMethod(Enum):
     GET = "GET"
@@ -21,13 +23,16 @@ class HttpMethod(Enum):
     DELETE = "DELETE"
     PATCH = "PATCH"
 
+
 @dataclass
 class GenericErrorBody:
     error: str
 
+
 @dataclass
 class GenericSuccessBody:
     response: str
+
 
 @dataclass
 class Result(Generic[S, E]):
@@ -43,8 +48,38 @@ class Result(Generic[S, E]):
     def fail(cls, value: E) -> "Result[S, E]":
         return cls(type=ResultType.ERROR, error=value)
 
-async def Http(method: HttpMethod, path: str, data: Optional[T], successType: type(S) = GenericSuccessBody, errorType: type(E) = GenericErrorBody) -> Result[S, E]:
-    from backend.websocket import WebSocket # Prevent circular-import error
+
+def from_dict(cls: type, data: dict):
+    """
+    Recursively convert a dict into a dataclass because Py does not do that automatically for some reason
+    """
+    if not is_dataclass(cls):
+        return data
+
+    init_kwargs = {}
+    for f in fields(cls):
+        value = data.get(f.name)
+        if value is None:
+            init_kwargs[f.name] = None
+            continue
+
+        if is_dataclass(f.type):
+            init_kwargs[f.name] = from_dict(f.type, value)
+        elif getattr(f.type, "__origin__", None) is list:
+            sub_type = f.type.__args__[0]
+            if is_dataclass(sub_type):
+                init_kwargs[f.name] = [from_dict(sub_type, item) for item in value]
+            else:
+                init_kwargs[f.name] = value
+        else:
+            init_kwargs[f.name] = value
+
+    return cls(**init_kwargs)
+
+
+async def Http(method: HttpMethod, path: str, data: Optional[T], successType: type(S) = GenericSuccessBody,
+               errorType: type(E) = GenericErrorBody) -> Result[S, E]:
+    from backend.websocket import WebSocket  # Prevent circular-import error
 
     headers: dict[str, str] = {}
 
@@ -71,9 +106,9 @@ async def Http(method: HttpMethod, path: str, data: Optional[T], successType: ty
 
             if 200 <= resp.status < 300:
                 if isinstance(body, list):
-                    result = [successType(**item) for item in body]
+                    result = [from_dict(successType, item) for item in body]
                     return Result.ok(result)
                 else:
-                    return Result.ok(successType(**body))
+                    return Result.ok(from_dict(successType, body))
             else:
-                return Result.fail(errorType(**body))
+                return Result.fail(from_dict(errorType, body))
