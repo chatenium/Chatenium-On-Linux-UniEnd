@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 from typing import List, Callable, Dict
 
 from backend.http import Http, HttpMethod, ResultType
@@ -6,7 +7,7 @@ from backend.session_manager import SessionManager
 from dataclasses import dataclass, field, asdict
 from backend.types import TimeStamp
 from backend.websocket import WebSocket
-
+from backend.chat.file_uploader import FileUploader
 
 @dataclass()
 class Attachment:
@@ -176,10 +177,21 @@ class DmHandler(object):
             raise ValueError(result.error.error)
 
     @classmethod
-    async def send_message(cls, chatid: str, message: str, reply_to: str, reply_to_message: str):
+    async def send_message(cls, chatid: str, message: str, reply_to: str, reply_to_message: str, files: List[Path] = []):
         print("Sending message")
         if SessionManager.instance().currentSession is None:
             raise ValueError("No session")
+
+        upload_id = ""
+        if files:
+            print("Files provided, calling file uploader...")
+            uploader = FileUploader()
+            try:
+                upload_id = await uploader.upload_files(files, chatid)
+                print("File uploader signaled success")
+            except Exception as e:
+                print("File uploader signaled error")
+                raise e
 
         result = await Http(
             HttpMethod.POST,
@@ -190,7 +202,7 @@ class DmHandler(object):
                 replyToMessage=reply_to_message,
                 chatid=chatid,
                 replyTo=reply_to,
-                uploadId="",
+                uploadId=upload_id,
                 pfp=SessionManager.instance().currentSession[1].pfp,
                 userid=SessionManager.instance().currentSession[1].userid,
             )),
