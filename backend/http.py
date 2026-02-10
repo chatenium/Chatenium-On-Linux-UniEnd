@@ -78,7 +78,7 @@ def from_dict(cls: type, data: dict):
 
 
 async def Http(method: HttpMethod, path: str, data: Optional[T], successType: type(S) = GenericSuccessBody,
-               errorType: type(E) = GenericErrorBody) -> Result[S, E]:
+               errorType: type(E) = GenericErrorBody, cdn_req=False) -> Result[S, E]:
     from backend.websocket import WebSocket  # Prevent circular-import error
 
     headers: dict[str, str] = {}
@@ -93,13 +93,17 @@ async def Http(method: HttpMethod, path: str, data: Optional[T], successType: ty
         headers["X-WS-ID"] = WebSocket.connectionId
 
     async with aiohttp.ClientSession(headers=headers) as session:
-        todo = session.get(f"{Environments.instance().api_url}/{path}")
+        server_url = Environments.instance().api_url
+        if cdn_req:
+            server_url = Environments.instance().cdn_url
+
+        todo = session.get(f"{server_url}/{path}")
 
         if method == HttpMethod.POST:
-            todo = session.post(f"{Environments.instance().api_url}/{path}", data=json.dumps(data))
+            todo = session.post(f"{server_url}/{path}", data=json.dumps(data))
 
         if method == HttpMethod.PATCH:
-            todo = session.patch(f"{Environments.instance().api_url}/{path}", data=json.dumps(data))
+            todo = session.patch(f"{server_url}/{path}", data=json.dumps(data))
 
         async with todo as resp:
             body = await resp.json()
