@@ -1,16 +1,22 @@
-python3-chatenium-uniend (0.3.3) unstable; urgency=medium
+python3-chatenium-uniend (0.4) stable; urgency=medium
+
+  * Added attachment upload support in DMs
+
+ -- Chatenium <personal@alms.hu>  Tue, 10 Jan 2026 14:07:45 +0100
+
+python3-chatenium-uniend (0.3.3) stable; urgency=medium
 
   * Patched HTTP to recursively decode all dicts to dataclasses in response
 
  -- Chatenium <personal@alms.hu>  Mon, 09 Jan 2026 14:37:57 +0100
 
-python3-chatenium-uniend (0.3.2) unstable; urgency=medium
+python3-chatenium-uniend (0.3.2) stable; urgency=medium
 
   * Hotfix chat fetching
 
  -- Chatenium <personal@alms.hu>  Fri, 23 Jan 2026 12:06:16 +0100
 
-python3-chatenium-uniend (0.3.1-1) unstable; urgency=medium
+python3-chatenium-uniend (0.3.1-1) stable; urgency=medium
 
   * Initial release on Debian.
 

@@ -1,5 +1,5 @@
 Name:           python3-chatenium-uniend
-Version:        0.3.3
+Version:        0.4
 Release:        1%{?dist}
 Summary:        Chatenium UniEnd
 
@@ -43,6 +43,10 @@ in Python and built using Meson.
 
 %{python3_sitelib}/backend*
 %{python3_sitelib}/chatenium_uniend-*.dist-info/
+
+%changelog
+* Tue Feb 10 2026 chatenium <personal@alms.hu> - 0.4
+- Added attachment upload support in DMs
 
 %changelog
 * Tue Jan 06 2026 chatenium <personal@alms.hu> - 0.3.1-1
