@@ -66,28 +66,40 @@ class DeleteMessageReq:
     userid: str
     chatid: str
 
+@dataclass
+class WSMessageEditPayload:
+    messageId: str
+    message: str
+
+@dataclass
+class WSMessageRemovePayload:
+    messageId: str
+
 class DmHandler(object):
     _instance = None
-    _listeners: List[Callable[[List[Message]], None]] = []
-    _messages: Dict[str, List[Message]] = {}
+    _listeners = {
+        "add": [], # [Message]
+        "edit": [], # WSMessageEditPayload
+        "rem": [] # str
+    }
 
     def __init__(self):
         raise RuntimeError('Call instance() instead')
 
     # Backend -> Frontend comms
     @classmethod
-    def subscribe(cls, handler: Callable[[List[Message]], None]):
-        cls._listeners.append(handler)
+    def subscribe(cls, handler, channel: str):
+        cls._listeners[channel].append(handler)
 
     @classmethod
-    def unsubscribe(cls, handler: Callable[[List[Message]], None]):
-        cls._listeners.remove(handler)
+    def unsubscribe(cls, handler, channel):
+        cls._listeners[channel].remove(handler)
 
     @classmethod
-    def _notify(cls, messages: List[Message]):
-        print("Notifying listeners about message list change")
-        for listener in cls._listeners:
-            listener(messages)
+    def _notify(cls, data, channel):
+        print(f"Sending data to channel: {channel} with data: {data}")
+        for listener in cls._listeners[channel]:
+            listener(data)
     # Backend -> Frontend comms end
 
     # WS -> Backend -> Frontend
@@ -95,9 +107,19 @@ class DmHandler(object):
     @WebSocket.on("newMessage", Message)
     def _on_new_message(message: Message):
         cls = DmHandler
-        print("Message")
-        cls._messages.setdefault(message.chatid, []).append(message)
-        cls._notify(cls._messages[message.chatid])
+        cls._notify(message, "add")
+
+    @staticmethod
+    @WebSocket.on("editedMessage", WSMessageEditPayload)
+    def _on_edited_message(payload: WSMessageEditPayload):
+        cls = DmHandler
+        cls._notify(payload, "edit")
+
+    @staticmethod
+    @WebSocket.on("deletedMessage", WSMessageRemovePayload)
+    def _on_deleted_message(payload: WSMessageRemovePayload):
+        cls = DmHandler
+        cls._notify(payload.messageId, "rem")
 
     @classmethod
     def instance(cls):
@@ -121,7 +143,6 @@ class DmHandler(object):
         )
 
         if result.type == ResultType.SUCCESS:
-            cls._messages[chatid] = result.success
             return result.success
         else:
             raise ValueError(result.error)
@@ -143,13 +164,10 @@ class DmHandler(object):
         )
 
         if result.type == ResultType.SUCCESS:
-            messages = cls._messages.get(chatid, [])
-            for msg in messages:
-                if msg.msgid == messageId:
-                    msg.message = newMessage
-                    msg.isEdited = True
-            cls._messages[chatid] = messages
-            cls._notify(messages)
+            cls._notify(WSMessageEditPayload(
+                messageId=messageId,
+                message=newMessage
+            ), "edit")
         else:
             raise ValueError(result.error.error)
 
@@ -169,10 +187,7 @@ class DmHandler(object):
         )
 
         if result.type == ResultType.SUCCESS:
-            messages = cls._messages.get(chatid, [])
-            messages = [msg for msg in messages if msg.msgid != messageId]
-            cls._messages[chatid] = messages
-            cls._notify(messages)
+            cls._notify(messageId, "rem")
         else:
             raise ValueError(result.error.error)
 
@@ -210,9 +225,7 @@ class DmHandler(object):
         )
 
         if result.type == ResultType.SUCCESS:
-            print(result.success)
-            cls._messages[chatid].append(result.success)
-            cls._notify(cls._messages[chatid])
+            cls._notify(result.success, "add")
         else:
             raise ValueError(result.error)
 
