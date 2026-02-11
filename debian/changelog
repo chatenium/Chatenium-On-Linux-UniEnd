@@ -1,8 +1,14 @@
+python3-chatenium-uniend (0.5) stable; urgency=medium
+
+  * Refactored DmHandler (BREAKING CHANGES!!!). Implemented channels to signal new messages, edited messages and removed messages
+
+ -- Chatenium <personal@alms.hu>  Wed, 11 Feb 2026 13:25:15 +0100
+
 python3-chatenium-uniend (0.4) stable; urgency=medium
 
   * Added attachment upload support in DMs
 
- -- Chatenium <personal@alms.hu>  Tue, 10 Jan 2026 14:07:45 +0100
+ -- Chatenium <personal@alms.hu>  Tue, 10 Feb 2026 14:07:45 +0100
 
 python3-chatenium-uniend (0.3.3) stable; urgency=medium
 

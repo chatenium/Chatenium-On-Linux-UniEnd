@@ -45,6 +45,10 @@ in Python and built using Meson.
 %{python3_sitelib}/chatenium_uniend-*.dist-info/
 
 %changelog
+* Wed Feb 11 2026 chatenium <personal@alms.hu> - 0.5
+- Refactored DmHandler (BREAKING CHANGES!!!). Implemented channels to signal new messages, edited messages and removed messages
+
+%changelog
 * Tue Feb 10 2026 chatenium <personal@alms.hu> - 0.4
 - Added attachment upload support in DMs
 
