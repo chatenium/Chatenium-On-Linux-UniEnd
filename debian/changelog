@@ -1,3 +1,10 @@
+python3-chatenium-uniend (0.6) stable; urgency=medium
+
+    * Added message forwarding
+    * Added logging out
+
+ -- Chatenium <personal@alms.hu>  Wed, 11 Feb 2026 10:00:06 +0100
+
 python3-chatenium-uniend (0.5) stable; urgency=medium
 
   * Refactored DmHandler (BREAKING CHANGES!!!). Implemented channels to signal new messages, edited messages and removed messages

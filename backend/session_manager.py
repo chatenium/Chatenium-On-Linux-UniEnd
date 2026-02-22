@@ -11,6 +11,11 @@ class User:
     pfp: str
     userid: str
 
+@dataclass()
+class LogoutReq:
+    token: str
+    userid: str
+
 class SessionManager(object):
     _instance = None
 
@@ -40,3 +45,25 @@ class SessionManager(object):
                 return True
 
         return False
+
+    async def logout(self):
+        from backend.http import Http, HttpMethod, ResultType
+
+        if not SessionManager.instance().currentSession:
+            raise ValueError("No session")
+
+        result = await Http(
+            method=HttpMethod.POST,
+            path="user/logout",
+            data=asdict(LogoutReq(
+                token=SessionManager.instance().currentSession[0],
+                userid=SessionManager.instance().currentSession[1].userid
+            ))
+        )
+
+        if result.type == ResultType.SUCCESS:
+            LocalStorage.instance().delete(f"userdata_{SessionManager.instance().currentSession[1].userid}")
+            self.currentSession = None
+            print("Logout successful")
+        else:
+            raise ValueError(result.error)

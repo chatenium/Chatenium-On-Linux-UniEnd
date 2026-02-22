@@ -45,6 +45,11 @@ in Python and built using Meson.
 %{python3_sitelib}/chatenium_uniend-*.dist-info/
 
 %changelog
+* Sun Feb 22 2026 chatenium <personal@alms.hu> - 0.6
+- Added message forwarding
+- Added logout
+
+%changelog
 * Wed Feb 11 2026 chatenium <personal@alms.hu> - 0.5
 - Refactored DmHandler (BREAKING CHANGES!!!). Implemented channels to signal new messages, edited messages and removed messages
 

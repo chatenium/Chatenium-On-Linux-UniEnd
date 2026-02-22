@@ -32,6 +32,11 @@ class LocalStorage(object):
         os.replace(tmp_path, file_path)
 
     @staticmethod
+    def delete(name):
+        file_path = os.path.join(LocalStorage.cache_dir, f"{name}.json")
+        os.remove(file_path)
+
+    @staticmethod
     def read(name):
         file_path = os.path.join(LocalStorage.cache_dir, f"{name}.json")
         if not os.path.exists(file_path):

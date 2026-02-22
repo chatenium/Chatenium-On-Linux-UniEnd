@@ -75,6 +75,15 @@ class WSMessageEditPayload:
 class WSMessageRemovePayload:
     messageId: str
 
+@dataclass
+class ForwardMessageReq:
+    messageId: str
+    forwardTo: str
+    chatid: str
+    userid: str
+    networkId: str
+    forwardType: str
+
 class DmHandler(object):
     _instance = None
     _listeners = {
@@ -251,5 +260,29 @@ class DmHandler(object):
 
         if result.type == ResultType.SUCCESS:
             print(f"Joined chat successfully as {WebSocket.instance().connectionId}")
+        else:
+            raise ValueError(result.error)
+
+    @classmethod
+    async def forward_chat(cls, messageId: str, forwardTo: str, chatid: str):
+        if SessionManager.instance().currentSession is None:
+            raise ValueError("No session")
+
+        result = await Http(
+            HttpMethod.POST,
+            "chat/dm/forwardMessage",
+            asdict(ForwardMessageReq(
+                messageId=messageId,
+                forwardTo=forwardTo,
+                chatid=chatid,
+                userid=SessionManager.instance().currentSession[1].userid,
+                networkId="",
+                forwardType="dm",
+            )),
+            Message,
+        )
+
+        if result.type == ResultType.SUCCESS:
+            print(f"Forwarded message successfully")
         else:
             raise ValueError(result.error)
